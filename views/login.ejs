@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+    <title>Log In</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    
+    <div class="sidenav">
+        <a href="index.html">User Profile</a>
+        <br>
+        <br>
+        <a href="Calender.html">Schedule</a>
+    </div>
+
+    <h1 class = "header"> Log In </h1>
+    <ul>
+    <% if(messages.success_msg) { %>
+        <li><%= messages.success_msg %> </li>
+    <%} %>
+    </ul>
+
+    <ul>
+        <% if(messages.error){ %>
+        <li><%= messages.error%></li>
+        <%} %>
+    </ul>
+    <div class = "userinfo">
+    <div class = "test">
+    <br><br><br><br><br><br>
+    <form action="/users/login" method="POST">
+        <label for="userid">User ID:</label><br>
+        <input type="text" 
+    id="User_id"
+    name="User_id" 
+    placeholder="User ID"
+    required/>
+<br><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password" placeholder="Password"
+    required/><br><br><br>
+        <input type="submit" value="Log In" style ="margin-left: 53px;">
+</form>
+
+    </div>
+    </div>
+</body>
+</html>

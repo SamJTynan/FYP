@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <title>Log In</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    
+    <div class="sidenav">
+        <a href="index.html">User Profile</a>
+        <br>
+        <br>
+        <a href="Calender.html">Schedule</a>
+    </div>
+
+    <ul>
+        <% if(typeof errors != 'undefined') { %>
+            <% errors.forEach(error=> { %> 
+                <li><%= error.message%></li>
+            <% })%>
+    <%}%> 
+    </ul>
+
+    <h1 class = "header"> Log In </h1>
+    <div class = "userinfo">
+    <div class = "test">
+    <br><br><br><br><br><br>
+    <form action="/users/register" method="POST">
+            <div style ="margin: auto;">
+            <label for="User_id">User ID:</label><br>
+            <input type="text" id="User_id" name="User_id" value="User ID"><br><br>
+            <label for="Name">Name:</label><br>
+            <input type="text" id="Name" name="Name" value="Password"><br><br><br>
+            <label for="password">Password:</label><br>
+            <input type="text" id="password" name="password" value="Password"><br><br><br>
+            <input type="radio" id="accounttype" name="accounttype" value="Employee">
+             <label for="html">Employee</label>
+            <input type="radio" id="accounttype" name="accounttype" value="Manager">
+            <label for="css">Manager</label><br>
+            <input type="submit" value="Log In" style ="margin-left: 53px;">
+        </a>
+    </form>
+    </div>
+    </div>
+</body>
+</html>
