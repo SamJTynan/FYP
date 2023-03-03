@@ -1,10 +1,10 @@
 const express = require('express'); //Importing expres library
 const app = express()
-const {pool} = require("./dbConfig");//Pulls library in from dbConfig file 
+const {pool} = require("./static/dbConfig");//Pulls library in from dbConfig file 
 const bcrypt = require('bcrypt');//Hides password
 const session = require('express-session');
 const flash = require("express-flash");
-
+app.use("/static", express.static('./static/'));
 const passport = require("passport");
 
 const initializePassport = require("./passportConfig.js");
@@ -35,8 +35,62 @@ app.get('/',(req,res)=>{ //Callback function that will be invoked whenever there
 });
 
 app.get('/users/dashboard', checkNotAuthenticated,(req,res)=>{ //Callback function that will be invoked whenever there is a HHTTP GET request with a path / relative to the site root
-    res.render("dashboard",{ user: req.user.Name}) ; //Sending message 
+    //console.log(req.user.User_id) ; //Sending message 
+    pool.query(
+        `SELECT * FROM public."User" WHERE "User_id" = $1;`,
+        [req.user.User_id],
+        (err,results) =>{
+            if(err){
+                throw err;
+            }
+         const user = results.rows[0];
 
+         if(user.type.trim()=== "Manager")
+         {
+            res.locals.user = req.user.Name;
+            res.locals.User_id = req.user.User_id;
+            
+            pool.query(
+                `SELECT user_id, shift_id FROM public."Manager" WHERE "manager_id" = $1;`,
+                [req.user.User_id],
+                (err,results) =>{
+                    if(err){
+                        throw err;
+                    }
+                    
+                    
+                    var employees = new Array(results.rows.length);// Lenght of the results of the SQL query
+
+                    
+                    
+                    var j = 0
+                    for(i=0;i<employees.length;i++)
+                    {
+                        const user = results.rows[i];
+                        // var temp = new Array(2);
+                        // temp[0] = user.user_id.trim();
+                        // temp[1] = user.shift_id.trim();
+                        // employees[i] = temp;
+                        employees[i]=
+                        {
+                            user_id: user.user_id.trim(),
+                            shift_id: user.shift_id.trim(),
+                        }
+                        
+                    }
+                        
+                    console.log(employees[0].shift_id);
+                    res.locals.employees = employees; 
+                    res.render("dashboard_admin",{employees:employees}) ;
+                }
+            );
+           
+         }
+         else if (user.type.trim()=== "Employee") {
+            res.render("dashboard_employee",{ user: req.user.Name}) ;
+         } 
+                    
+    });
 });
 
 app.get('/users/register', checkAuthenticated,(req,res)=>{ //Callback function that will be invoked whenever there is a HHTTP GET request with a path / relative to the site root
@@ -103,15 +157,10 @@ console.log({
                         res.redirect("/users/login");
                     }
                 );
-    
             }
-            }
-            
-            
+        }     
         );
     }
-   
-    
 });
 
 
@@ -123,18 +172,19 @@ app.post(
       failureFlash: true
     })
   );
-
-
+    
+ 
   function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
-      return res.redirect("/users/dashboard");
+      return res.redirect("/users/dashboard_admin");
     }
     next();
   }
   
   function checkNotAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
-      return next();
+         
+        return next();
     }
     res.redirect("/users/login");
   } 

@@ -1,5 +1,5 @@
 const localStrategy  = require("passport-local").Strategy;
-const { pool } = require('./dbConfig.js');
+const { pool } = require('./static/dbConfig.js');
 
 const bcrypt = require("bcrypt");
 const { authenticate } = require("passport");
@@ -24,7 +24,8 @@ function initialize(passport) {
                          console.log(err);
                       }
                       if (isMatch) {
-                        return done(null, user);
+                        return done(null, user,User_id);
+                        
                         
                       } else {
                         console.log("False");
@@ -40,14 +41,15 @@ function initialize(passport) {
         );
     };
 
+
     passport.use(
         new localStrategy({
             usernameField: "User_id",
             passwordField: "password"
         }, 
         authenticateUser
+        
         )
-   
     );
     
     passport.serializeUser(function(user, done) {

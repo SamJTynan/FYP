@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html>
+<body>
+ 
+<h1>Hello <%= user %></h1>
+<h1>Hello <%= User_id %></h1>
+<div id="test"></div>
+<button onclick="myFunction()">Click me</button>
+ <script>
+
+let User_id = '<%-User_id%>'; 
+
+function myFunction() {
+  document.getElementById("test").innerHTML = '<table><tr><th>User</th><th>Shift</th></tr><% employees.map((result)=>{ %><tr><td><%= result.user_id%></td><td><%= result.shift_id %></td></tr><% }) %></table>';
+}
+//document.getElementById('test').innerHTML = '<ul> <% employees.map((result)=>{ %> <li> <p><%= result.user_id%> + "    "      <%= result.shift_id %></p> </li><% }) %></ul>';
+
+</script>
+
+</body>
+</html>
