@@ -2,9 +2,160 @@
 <html>
 <body>
 
-<h1>Hello <%= user %></h1>
+<style>
+    div.toastui-calendar-panel.toastui-calendar-milestone {
+      display: none;
+    }
+    div.toastui-calendar-panel.toastui-calendar-task {
+      display: none;
+    }
+    div.toastui-calendar-panel.toastui-calendar-allday {
+      display: none;
+    }
+    div.toastui-calendar-panel-resizer{
+      display: none;
+    }
+    
+  </style>
+    <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
+   
+</head>
+<body onload = "startTime()">
 
-<!-- Employee -->
+    <h1>Hello <%= user %></h1>
 
+<script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.ie11.min.js"></script>
+<div id="calendar" class = "calendar" style="height:600px; width:600px;"></div>
+<br>
+<div id="schedule_calendar" class = "calendar" style="height:600px; width:600px; "></div>
+
+<div id ="clock"></div>
+<form  id = 'test' action="/users/dashboard" method="POST">
+<input type="hidden" id="time" name = "time" value=""/>
+<input type="hidden" id="user_id" name = "user_id" value=""/>
+<button class="button" id="clock_button"  name = "clock_button" value = 'in' onclick="clocking('in')">Clock In</button>
+<button class="button" id="clock_button"  name = "clock_button" value = 'out' onclick="clocking('out')">Clock Out</button>
+</form>
 </body>
+<script>
+  const Calendar = tui.Calendar;
+  const container = document.getElementById('calendar');
+  const options = {
+    defaultView: 'day',
+    timezone: {
+    
+    },
+    calendars: [
+      {
+        id: 'cal1',
+        name: 'work',
+      },
+    ],
+  };
+  
+  const Schedule_Calendar= tui.Calendar;
+  const Schedule_container = document.getElementById('schedule_calendar');
+   const Schedule_options = {
+    defaultView: 'week',
+    timezone: {
+    
+    },
+    calendars: [
+      {
+        id: 'cal2',
+        name: 'work',
+      },
+    ],
+  };
+
+
+
+  const calendar = new Calendar(container, options);
+  const calendar2 = new Calendar(Schedule_container, Schedule_options);
+  let display_shift = JSON.parse('<%-shifts%>');
+  
+  
+  for(i=0;i<display_shift.length;i++)
+  {
+    let temp = (JSON.stringify(display_shift[i].date)).substring(1,JSON.stringify(display_shift[i].date).indexOf('T')+1);
+    start = temp + display_shift[i].starttime;
+    end = temp   + display_shift[i].endtime;
+    console.log(start + " " + end);
+    calendar2.createEvents([
+      {
+        id: display_shift[i].shift_id,
+        calendarId: 'cal2',
+        title: display_shift[i].shift_id,
+        start: start ,
+        end: end,
+      }
+    ]);
+  }
+ 
+ 
+
+  function clocking(data)
+{
+  let User_id = '<%-User_id%>'; 
+  console.log(data);
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  
+  m = checkTime(m);
+  s = checkTime(s);
+  let time =  h + ":" + m + ":" + s;
+  let day = today.getDate();
+  let month = today.getMonth() + 1;
+  day = checkTime(day);
+  month = checkTime(month);
+  let year = today.getFullYear();
+  let temp = year + "-" + month + "-" + day + "T"+ h + ":" + m + ":" + s;
+  document.getElementById("time").value = temp;
+  document.getElementById("user_id").value = User_id;
+  if(data === 'in')
+  {
+    starttime = temp; 
+    calendar.createEvents([
+    {
+      id: 'clock',
+      calendarId: 'cal1',
+      title: 'Clocked in',
+      start: temp,
+      end:  temp,
+    }
+  ]);
+    
+  }
+  else
+  {
+    calendar.updateEvent('clock', 'cal1', {
+    title: 'Shift End',
+    end:  temp,
+
+    });
+    
+  }
+    
+}
+
+function startTime() {
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  m = checkTime(m);
+  s = checkTime(s);
+  document.getElementById('clock').innerHTML =  h + ":" + m + ":" + s;
+  setTimeout(startTime, 1000);
+}
+
+function checkTime(i) {
+  if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+  return i;
+}
+
+
+  </script>
 </html>

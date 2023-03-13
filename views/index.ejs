@@ -1,10 +1,140 @@
 <!DOCTYPE html>
 <html>
-<body>
+<head>
+
+  <style>
+    div.toastui-calendar-panel.toastui-calendar-milestone {
+      display: none;
+    }
+    div.toastui-calendar-panel.toastui-calendar-task {
+      display: none;
+    }
+    div.toastui-calendar-panel.toastui-calendar-allday {
+      display: none;
+    }
+    div.toastui-calendar-panel-resizer{
+      display: none;
+    }
+    
+  </style>
+    <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
+   
+</head>
+<body onload = "startTime()">
 
 <h1>Index Page</h1>
 
-
-
+<script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.ie11.min.js"></script>
+<div id="calendar" class = "calendar" style="height:600px; width:600px;"></div>
+<div id ="clock"></div>
+<button class="button" id="clock_button" onclick="clocking('in')">Clock In</button>
+<button class="button" id="clock_button" onclick="clocking('out')">Clock Out</button>
 </body>
+<script>
+    const Calendar = tui.Calendar;
+    const container = document.getElementById('calendar');
+  const options = {
+    defaultView: 'day',
+    timezone: {
+    
+    },
+    calendars: [
+      {
+        id: 'cal1',
+        name: 'work',
+      },
+    ],
+  };
+  
+  const calendar = new Calendar(container, options);
+
+let starttime = 0;
+function clocking(data)
+{
+  console.log(data);
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  
+  m = checkTime(m);
+  s = checkTime(s);
+  let time =  h + ":" + m + ":" + s;
+  let day = today.getDate();
+  let month = today.getMonth() + 1;
+  day = checkTime(day);
+  month = checkTime(month);
+  let year = today.getFullYear();
+  let temp = year + "-" + month + "-" + day + "T"+ h + ":" + m + ":" + s;
+
+  if(data === 'in')
+  {
+    starttime = temp; 
+    calendar.createEvents([
+    {
+      id: 'clock_in',
+      calendarId: 'cal1',
+      title: 'Clocked in',
+      start: temp,
+      end:  temp,
+    }
+  ]);
+    
+  }
+  else
+  {
+    calendar.deleteEvent('clock_in', 'cal1');
+    
+    calendar.createEvents([
+    {
+      id: 'clock_out',
+      calendarId: 'cal1',
+      title: 'Shift End',
+      start: starttime,
+      end:  temp,
+    }
+    ]);
+  }
+    
+}
+
+
+//   function clocking() {
+
+//   console.log(temp);
+//   calendar.createEvents([
+//   {
+//     id: 'event1',
+//     calendarId: 'cal1',
+//     title: 'Shift1',
+//     start: '2023-03-10T09:00:00',
+//     end:  temp,
+  
+//   }
+// ]);
+ 
+// }
+ 
+
+
+
+
+function startTime() {
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  m = checkTime(m);
+  s = checkTime(s);
+  document.getElementById('clock').innerHTML =  h + ":" + m + ":" + s;
+  setTimeout(startTime, 1000);
+}
+
+function checkTime(i) {
+  if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+  return i;
+}
+
+
+  </script>
 </html>

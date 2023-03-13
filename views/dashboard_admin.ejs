@@ -1,20 +1,139 @@
 <!DOCTYPE html>
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <html>
-<body>
+<body onload = "startTime()">
  
 <h1>Hello <%= user %></h1>
 <h1>Hello <%= User_id %></h1>
-<div id="test"></div>
-<button onclick="myFunction()">Click me</button>
- <script>
+<div id ="clock"></div>
+<button class="button" id="clock_button" onclick="clocking()">Show Shifts</button>
+<br>
+<button class="button" id="button">Show Shifts</button>
+<div id="Show_Shifts" style="display: none;">
+  <div><input type="text" class ="myinput" id="myInput" onkeyup="search()" placeholder="Search Sift Data"> 
+    <label for="Name_Search">Name</label>
+    <input type="radio" id="Name_Search" name="drone" value="0"> 
+    <label for="User_id_Search">User ID</label>
+    <input type="radio" id="User_id_Search" name="drone" value="1"> 
+    <label for="Shift_id_Search">Shift ID</label>
+    <input type="radio" id="Shift_id_Search" name="drone" value="2">
+    <label for="Date_Search">Date</label>
+    <input type="radio" id="Date_Search" name="drone" value="3"> <div> <!-- Div for error messages -->
+    <div id="Nore" style="display:none"><p  style = "text-align:center;">No Results</p></div>
+          <div id="Table" class = "myTable">  <!-- Div for table -->
+            <table id="myTable"> 
+            <tr>
+            <th>Name</th>
+            <th>User</th>
+            <th>Shift</th>
+            <th>Date</th>
+          </tr><% employees.map((result)=>{ %>
+          <tr>
+            <td><%= result.name%></td><td><%= result.user_id%></td><td><%= result.shift_id %></td><td><%= result.date %></td>
+          </tr><% }) %>
+        </table>
+        </div>
+
+</div>
+
+<script>
 
 let User_id = '<%-User_id%>'; 
 
-function myFunction() {
-  document.getElementById("test").innerHTML = '<table><tr><th>User</th><th>Shift</th></tr><% employees.map((result)=>{ %><tr><td><%= result.user_id%></td><td><%= result.shift_id %></td></tr><% }) %></table>';
+jQuery(document).ready(function($){
+        jQuery("#button").click(function(){
+            jQuery("#Show_Shifts").toggle("slide");
+        });
+    });
+
+
+function search() { //For searchinf table
+
+  if(document.getElementById('Name_Search').checked) {   
+       var selectedValue = document.getElementById('Name_Search').value;  
+  }
+  
+  if(document.getElementById('User_id_Search').checked) {   
+       var selectedValue = document.getElementById('User_id_Search').value;  
+  }
+
+  if(document.getElementById('Shift_id_Search').checked) {   
+       var selectedValue = document.getElementById('Shift_id_Search').value;  
+  }
+
+  if(document.getElementById('Date_Search').checked) {   
+       var selectedValue = document.getElementById('Date_Search').value;  
+  }
+  console.log( typeof parseInt(selectedValue));
+  var element1 = document.getElementById("Nore");
+  var element2 = document.getElementById("Table");
+  var input, filter, table, tr, td, i, txtValue;
+  
+  var temp2 = document.getElementById('myTable').rows.length-1;
+  input = document.getElementById("myInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("myTable");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[parseInt(selectedValue)];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+		tr[i].style.display = "none";
+		
+      }
+    } 
+  
 }
-//document.getElementById('test').innerHTML = '<ul> <% employees.map((result)=>{ %> <li> <p><%= result.user_id%> + "    "      <%= result.shift_id %></p> </li><% }) %></ul>';
+var temp1 = document.getElementById("myTable").querySelectorAll('[style="display: none;"]').length; 
+if(temp1 == temp2)
+  {
+	element1.style.display = "block";
+	element2.style.display = "none";
+	
+  } 
+  
+else
+{
+	element1.style.display = "none";
+	element2.style.display = "block";
+
+}
+  
+  
+}
+
+
+function clocking() {
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  today.
+  m = checkTime(m);
+  s = checkTime(s);
+  let time =  h + ":" + m + ":" + s;
+  console.log(today.getDate());
+}
+
+
+function startTime() {
+  const today = new Date();
+  let h = today.getHours();
+  let m = today.getMinutes();
+  let s = today.getSeconds();
+  m = checkTime(m);
+  s = checkTime(s);
+  document.getElementById('clock').innerHTML =  h + ":" + m + ":" + s;
+  setTimeout(startTime, 1000);
+}
+
+function checkTime(i) {
+  if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+  return i;
+}
 
 </script>
 

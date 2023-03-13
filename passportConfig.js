@@ -8,7 +8,7 @@ function initialize(passport) {
 
     const authenticateUser = (User_id,password,done)=>{
         pool.query(
-            `SELECT * FROM public."User" WHERE "User_id" = $1;`,
+            `SELECT * FROM public."User" WHERE "user_id" = $1;`,
             [User_id],
             (err,results) =>{
                 if(err){

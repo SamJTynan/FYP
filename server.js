@@ -6,6 +6,7 @@ const session = require('express-session');
 const flash = require("express-flash");
 app.use("/static", express.static('./static/'));
 const passport = require("passport");
+app.use(express.json());
 
 const initializePassport = require("./passportConfig.js");
 
@@ -35,51 +36,43 @@ app.get('/',(req,res)=>{ //Callback function that will be invoked whenever there
 });
 
 app.get('/users/dashboard', checkNotAuthenticated,(req,res)=>{ //Callback function that will be invoked whenever there is a HHTTP GET request with a path / relative to the site root
-    //console.log(req.user.User_id) ; //Sending message 
     pool.query(
-        `SELECT * FROM public."User" WHERE "User_id" = $1;`,
-        [req.user.User_id],
+        `SELECT * FROM public."User" WHERE "user_id" = $1;`,
+        [req.user.user_id],
         (err,results) =>{
             if(err){
                 throw err;
             }
          const user = results.rows[0];
-
+         
          if(user.type.trim()=== "Manager")
          {
-            res.locals.user = req.user.Name;
-            res.locals.User_id = req.user.User_id;
-            
+            res.locals.user = req.user.name;
+            res.locals.User_id = req.user.user_id;
+            console.log("test");
             pool.query(
-                `SELECT user_id, shift_id FROM public."Manager" WHERE "manager_id" = $1;`,
-                [req.user.User_id],
+                `SELECT "User".name, "Manager".user_id, "Manager".shift_id ,"Shift".date FROM public."Manager" JOIN public."Shift" ON "Shift".shift_id = "Manager".shift_id JOIN public."User" ON "User".user_id = "Manager".user_id WHERE "Manager".manager_id = $1;`,
+                [req.user.user_id],
                 (err,results) =>{
                     if(err){
                         throw err;
                     }
                     
-                    
                     var employees = new Array(results.rows.length);// Lenght of the results of the SQL query
-
-                    
-                    
-                    var j = 0
+             
                     for(i=0;i<employees.length;i++)
                     {
                         const user = results.rows[i];
-                        // var temp = new Array(2);
-                        // temp[0] = user.user_id.trim();
-                        // temp[1] = user.shift_id.trim();
-                        // employees[i] = temp;
                         employees[i]=
                         {
+                            name: user.name.trim(),
                             user_id: user.user_id.trim(),
                             shift_id: user.shift_id.trim(),
+                            date: user.date
                         }
                         
                     }
                         
-                    console.log(employees[0].shift_id);
                     res.locals.employees = employees; 
                     res.render("dashboard_admin",{employees:employees}) ;
                 }
@@ -87,9 +80,36 @@ app.get('/users/dashboard', checkNotAuthenticated,(req,res)=>{ //Callback functi
            
          }
          else if (user.type.trim()=== "Employee") {
-            res.render("dashboard_employee",{ user: req.user.Name}) ;
-         } 
-                    
+            pool.query( //For getting every shift user has
+                `select * FROM public."ShiftPlanned" WHERE "user_id"= $1;`,
+                [req.user.user_id],
+                (err,results) =>{
+                    if(err){
+                        throw err;
+                    }
+               
+                    var shifts = new Array(results.rows.length);
+                    for(i=0;i<shifts.length;i++)
+                    {
+                        const shift = results.rows[i];
+                        shifts[i]=
+                        {
+                            shift_id: shift.shift_id.trim(), 
+                            date: shift.date,
+                            starttime: shift.starttime.trim(),
+                            endtime: shift.endtime.trim(),
+                        }
+                        
+                    }
+
+                    // console.log(typeof shifts[0]);
+                    var shifts_ = JSON.stringify(shifts);
+                    res.locals.shifts = shifts_; 
+                    res.locals.User_id = req.user.user_id;
+                    res.render("dashboard_employee",{ user: req.user.name}) ;
+                }
+            );
+         }             
     });
 });
 
@@ -99,6 +119,51 @@ app.get('/users/register', checkAuthenticated,(req,res)=>{ //Callback function t
 
 app.get('/users/login', checkAuthenticated,(req,res)=>{ //Callback function that will be invoked whenever there is a HHTTP GET request with a path / relative to the site root
     res.render("login"); //Sending message 
+});
+
+app.post('/users/dashboard', async (req,res) =>{
+    console.log('IT WORKED');
+     let {clock_button,time,user_id} =req.body;
+     console.log({
+        clock_button,
+        time,
+        user_id
+    }); 
+    let temp = time.split('T');
+    let query = "";
+    if(clock_button === 'in')
+    {
+      query = `INSERT INTO public."Bookings" ("bookstart","user_id","shift_id")VALUES($1,$2,(SELECT shift_id FROM public."ShiftPlanned" WHERE date = $3 AND user_id = $2));`;
+      starttime = temp[1];
+      pool.query(
+        query,
+        [temp[1],user_id,temp[0]],
+        (err,results) =>{
+            if(err) {
+                throw err;
+            }
+        }
+    );
+     
+
+    }
+    else if (clock_button === 'out')
+    {
+     // `INSERT INTO public."Bookings" ("bookstart","user_id","shift_id")VALUES($1,$2,(SELECT shift_id FROM public."ShiftPlanned" WHERE date = $3 AND user_id = $2));`
+        console.log("HERE"+starttime);
+        query =`UPDATE public."Bookings" SET "bookend" = $1 WHERE "shift_id" = (SELECT shift_id FROM public."ShiftPlanned" WHERE date = $3 AND user_id = $2) AND "user_id" = (SELECT user_id FROM public."ShiftPlanned" WHERE date = $3 AND user_id = $2) AND "bookstart" =$4`;
+        pool.query(
+            query,
+            [temp[1],user_id,temp[0],starttime],
+            (err,results) =>{
+                if(err) {
+                    throw err;
+                }
+            }
+        );
+
+    }
+    
 });
 
 app.post('/users/register', async (req,res) =>{
@@ -130,7 +195,7 @@ console.log({
     { //Form validation has been passed
         let hashedPassword = await bcrypt.hash(password, 10); //Hashes the password
         pool.query(
-            `SELECT * FROM public."User" WHERE "User_id" = $1;`,
+            `SELECT * FROM public."User" WHERE "user_id" = $1;`,
             [User_id],
             (err,results) =>{
                 if(err) {
@@ -146,7 +211,7 @@ console.log({
             else
             {
                 pool.query(
-                    `INSERT INTO public."User" ("User_id","password","Name","type") VALUES ($1,$2,$3,$4);`,
+                    `INSERT INTO public."User" ("user_id","password","name","type") VALUES ($1,$2,$3,$4);`,
                     [User_id,hashedPassword,Name,accounttype],
                     (err,results) =>{
                         if(err) {
@@ -163,9 +228,8 @@ console.log({
     }
 });
 
-
 app.post(
-    "/users/login",
+"/users/login",
     passport.authenticate("local", {
       successRedirect: "/users/dashboard",
       failureRedirect: "/users/login",
@@ -173,7 +237,6 @@ app.post(
     })
   );
     
- 
   function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
       return res.redirect("/users/dashboard_admin");
